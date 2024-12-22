@@ -7,7 +7,7 @@ app = Flask(__name__)
 # Replace these with your Zoom OAuth credentials
 CLIENT_ID = "8gZgCn_hSEmZURhhGL3PkA"
 CLIENT_SECRET = "F46RA4SWVQxv8L4mj4JyT0yiIU1op7EL"
-REDIRECT_URI = "http://localhost:5000/oauth/callback"
+REDIRECT_URI = "https://obs-overlays.vercel.app/oauth/callback"
 
 # Zoom OAuth URLs
 AUTH_URL = f"https://zoom.us/oauth/authorize?response_type=code&client_id=8gZgCn_hSEmZURhhGL3PkA&redirect_uri={REDIRECT_URI}"
