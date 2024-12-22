@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "oauth_server.py", "use": "@vercel/python" }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "oauth_server.py" }
+  ]
+}
