@@ -5,8 +5,8 @@ import re  # For extracting emojis
 app = Flask(__name__)
 
 # Replace these with your Zoom OAuth credentials
-CLIENT_ID = "8gZgCn_hSEmZURhhGL3PkA"
-CLIENT_SECRET = "F46RA4SWVQxv8L4mj4JyT0yiIU1op7EL"
+CLIENT_ID = "kPDQv5ZyQ0OQyDULYHTVmQ"
+CLIENT_SECRET = "K78FIWu7Pfm9r0zzYjoCnEjlF2I9N4gg"
 REDIRECT_URI = "https://obs-overlays.vercel.app/oauth/callback"
 
 # Zoom OAuth URLs
