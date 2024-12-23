@@ -43,20 +43,24 @@ def extract_emojis(text):
 # Function to get an access token
 def get_access_token(auth_code=None):
     if not auth_code:
-        return None  # Authorization code is mandatory for the OAuth flow
-    
+        print("No authorization code provided.")
+        return None
+
     data = {
         "grant_type": "authorization_code",
         "code": auth_code,
-        "redirect_uri": REDIRECT_URI,
+        "redirect_uri": "https://obs-overlays.vercel.app/oauth/callback",
     }
     response = requests.post(
         TOKEN_URL,
         data=data,
         auth=(CLIENT_ID, CLIENT_SECRET),
     )
-    # Debugging: Print the full response for troubleshooting
-    print("Token Request Response:", response.status_code, response.text)
+
+    # Debugging: Print the response details
+    print("Access Token Request Debug:")
+    print("Status Code:", response.status_code)
+    print("Response Text:", response.text)
 
     if response.status_code != 200:
         return None
