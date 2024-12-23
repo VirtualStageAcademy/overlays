@@ -15,7 +15,7 @@ CLIENT_SECRET = "HUT8ma2fY2kk6CAzF6AmHp9UhoapWAnB"
 SECRET_TOKEN = "DVb8pCcSTteCwKPP2oxikA"
 VERIFICATION_TOKEN = "a3VcjPvKRzOohwhg6CFlzQ"
 
-# Redirect URI (replace with your deployment URL)
+# Redirect URI
 REDIRECT_URI = "https://obs-overlays.vercel.app/oauth/callback"
 
 # Zoom API Endpoints
@@ -40,16 +40,24 @@ def extract_emojis(text):
     )
     return emoji_pattern.findall(text)
 
-# Function to get an access token
-def get_access_token(auth_code=None):
+# =======================
+# Flask Routes
+# =======================
+
+@app.route("/")
+def home():
+    return f'<a href="{AUTH_URL}">Connect Your Zoom Account</a>'
+
+@app.route("/oauth/callback")
+def oauth_callback():
+    auth_code = request.args.get("code")
     if not auth_code:
-        print("No authorization code provided.")
-        return None
+        return jsonify({"error": "Authorization code not provided"}), 400
 
     data = {
         "grant_type": "authorization_code",
         "code": auth_code,
-        "redirect_uri": "https://obs-overlays.vercel.app/oauth/callback",
+        "redirect_uri": REDIRECT_URI,
     }
     response = requests.post(
         TOKEN_URL,
@@ -57,47 +65,40 @@ def get_access_token(auth_code=None):
         auth=(CLIENT_ID, CLIENT_SECRET),
     )
 
-    # Debugging: Print the response details
-    print("Access Token Request Debug:")
-    print("Status Code:", response.status_code)
-    print("Response Text:", response.text)
-
     if response.status_code != 200:
-        return None
+        return jsonify({"error": "Failed to retrieve access token"}), response.status_code
 
     response_data = response.json()
-    return response_data.get("access_token")
-# =======================
-# Flask Routes
-# =======================
+    return jsonify({"access_token": response_data.get("access_token")})
 
 @app.route("/zoom-data")
 def get_zoom_data():
-    # Use the valid access token directly for debugging
+    # Fixed token for testing
     token = "eyJzdiI6IjAwMDAwMiIsImFsZyI6IkhTNTEyIiwidiI6IjIuMCIsImtpZCI6ImMxZjUzYzkxLTUyYzQtNDQ5Yy05MmRiLTFlYzkzOTI2NDYzYSJ9.eyJ2ZXIiOjEwLCJhdWlkIjoiNzg5YzQ2NzAyNzU2NDUzYTgyNzQ2Yzk4N2YxZjY0ZjU5NzQwMTgxYTFiNGE2NmRjYjc0Mjk4N2QwYWQ3NzQxYiIsImNvZGUiOiI0U2hxUFAxU2NOUVlIVVB1WjhkUkMtaDBFRGx2dXBmVVEiLCJpc3MiOiJ6bTpjaWQ6WGVCVUVkQ0tSQjJUdVVZTUNuOG13USIsImdubyI6MCwidHlwZSI6MCwidGlkIjowLCJhdWQiOiJodHRwczovL29hdXRoLnpvb20udXMiLCJ1aWQiOiI0UHlpcXZ5dFFLeWZZcllrTUo0MFNBIiwibmJmIjoxNzM0OTM2Mjk5LCJleHAiOjE3MzQ5Mzk4OTksImlhdCI6MTczNDkzNjI5OSwiYWlkIjoib0hjRnQtaXdUTTZzbXdvLTdIUEhYZyJ9.T2Zx9_jc1JW1AHHpG6bxTSZC2sgcNs3WR9NiOXah7NYkMQcduyFsNq6MbrvYtnFXHYe3nNCNtHhsa78VE4hFUQ"
-    
+
     response = requests.get(
         CHAT_MESSAGES_URL,
         headers={"Authorization": f"Bearer {token}"},
     )
-    
+
     # Debugging: Print response details
     print("Chat Messages Debug:")
     print("Status Code:", response.status_code)
     print("Response Text:", response.text)
-    
+
     if response.status_code != 200:
         return jsonify({"error": "Failed to retrieve chat messages"}), response.status_code
-    
+
     chat_messages = response.json().get("messages", [])
     emojis = []
     for msg in chat_messages:
         emojis.extend(extract_emojis(msg.get("message", "")))
-    
+
     return jsonify({
         "chat": [msg.get("message", "") for msg in chat_messages],
         "reactions": emojis
     })
+
 # =======================
 # Main Entry Point
 # =======================
