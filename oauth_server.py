@@ -90,11 +90,24 @@ def get_zoom_data():
         CHAT_MESSAGES_URL,
         headers={"Authorization": f"Bearer {token}"},
     )
+    
+    # Debugging: Print response details for logs
+    print("Chat Messages Debug:")
+    print("Status Code:", response.status_code)
+    print("Response Text:", response.text)
+
+    if response.status_code != 200:
+        return jsonify({"error": "Failed to retrieve chat messages"}), response.status_code
+
     chat_messages = response.json().get("messages", [])
     emojis = []
     for msg in chat_messages:
         emojis.extend(extract_emojis(msg.get("message", "")))
-    return jsonify({"chat": [msg["message"] for msg in chat_messages], "reactions": emojis})
+
+    return jsonify({
+        "chat": [msg.get("message", "") for msg in chat_messages],
+        "reactions": emojis
+    })
 
 # =======================
 # Main Entry Point
