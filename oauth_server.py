@@ -16,7 +16,7 @@ SECRET_TOKEN = "DVb8pCcSTteCwKPP2oxikA"
 VERIFICATION_TOKEN = "a3VcjPvKRzOohwhg6CFlzQ"
 
 # Redirect URI
-REDIRECT_URI = "https://obs-overlays.vercel.app/oauth/callback"
+REDIRECT_URI = os.getenv("REDIRECT_URI")
 
 # Zoom API Endpoints
 TOKEN_URL = "https://zoom.us/oauth/token"
