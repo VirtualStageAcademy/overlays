@@ -23,8 +23,10 @@ CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 REDIRECT_URI = os.getenv("REDIRECT_URI")
 
 # Tokens
-SECRET_TOKEN = "DVb8pCcSTteCwKPP2oxikA"
-VERIFICATION_TOKEN = "a3VcjPvKRzOohwhg6CFlzQ"
+import os
+
+SECRET_TOKEN = os.getenv("SECRET_TOKEN")
+VERIFICATION_TOKEN = os.getenv("VERIFICATION_TOKEN")
 
 # Zoom API Endpoints
 TOKEN_URL = "https://zoom.us/oauth/token"
