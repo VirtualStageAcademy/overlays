@@ -86,30 +86,48 @@ def oauth_callback():
 @app.route("/zoom-data/<token>")
 def get_zoom_data(token):
     try:
+        # Make the request to Zoom API
         response = requests.get(
             "https://api.zoom.us/v2/chat/users/me/messages",
             headers={"Authorization": f"Bearer {token}"},
         )
-        
+
         # Debugging: Print response details
-        print("Chat Messages Debug:")
+        print("DEBUG: Chat Messages API Response")
         print("Status Code:", response.status_code)
+        print("Response Headers:", response.headers)
         print("Response Text:", response.text)
-        
+
+        # Handle non-200 status codes gracefully
         if response.status_code != 200:
-            return jsonify({"error": "Failed to retrieve chat messages"}), response.status_code
-        
+            error_message = f"Failed to retrieve chat messages: {response.json().get('message', 'Unknown Error')}"
+            print(f"ERROR: {error_message}")
+            return jsonify({"error": error_message}), response.status_code
+
+        # Process the messages and extract emojis
         chat_messages = response.json().get("messages", [])
-        emojis = []   
+        emojis = []
         for msg in chat_messages:
-            emojis.extend(extract_emojis(msg.get("message", "")))
-        
+            message_text = msg.get("message", "")
+            emojis.extend(extract_emojis(message_text))
+
+        # Return the chat messages and extracted emojis
         return jsonify({
             "chat": [msg.get("message", "") for msg in chat_messages],
             "reactions": emojis
         })
+
+    except requests.exceptions.RequestException as e:
+        # Handle network-related errors
+        error_message = f"Network error: {str(e)}"
+        print(f"ERROR: {error_message}")
+        return jsonify({"error": error_message}), 500
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        # Catch-all for unexpected errors
+        error_message = f"Unexpected error: {str(e)}"
+        print(f"ERROR: {error_message}")
+        return jsonify({"error": error_message}), 500
+
 
 if __name__ == "__main__":
     app.run(port=5000)
