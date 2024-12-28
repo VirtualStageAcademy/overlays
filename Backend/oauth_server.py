@@ -13,33 +13,20 @@ load_dotenv()
 
 # Debugging: Print loaded environment variables
 print("DEBUG: Environment Variables Loaded")
-print("CLIENT_ID:", os.getenv("CLIENT_ID"))
-print("CLIENT_SECRET:", os.getenv("CLIENT_SECRET"))
 print("REDIRECT_URI:", os.getenv("REDIRECT_URI"))
 
 # Retrieve environment variables
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-REDIRECT_URI = os.getenv("REDIRECT_URI")
-
-# Tokens
-import os
-
 SECRET_TOKEN = os.getenv("SECRET_TOKEN")
 VERIFICATION_TOKEN = os.getenv("VERIFICATION_TOKEN")
 
-# Zoom API Endpoints
-TOKEN_URL = "https://zoom.us/oauth/token"
-CHAT_MESSAGES_URL = "https://api.zoom.us/v2/chat/users/me/messages"
-AUTH_URL = f"https://zoom.us/oauth/authorize?response_type=code&client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}"
-
+# Initialize Flask app
 app = Flask(__name__)
 
 # =======================
 # Utility Functions
 # =======================
 
-# Function to extract emojis from a text message
+# Function to extract emojis from a text message (retain if needed for webhook events)
 def extract_emojis(text):
     emoji_pattern = re.compile(
         "["  # Add Unicode ranges for emojis
@@ -58,75 +45,40 @@ def extract_emojis(text):
 
 @app.route("/")
 def home():
-    return f'<a href="{AUTH_URL}">Connect Your Zoom Account</a>'
+    return "Webhook App is Running!"
 
-@app.route("/oauth/callback")
-def oauth_callback():
-    auth_code = request.args.get("code")
-    if not auth_code:
-        return jsonify({"error": "Authorization code not provided"}), 400
+@app.route("/webhooks/notifications", methods=["POST"])
+def handle_zoom_webhook():
+    """Handles incoming Zoom webhook events."""
+    data = request.json
 
-    data = {
-        "grant_type": "authorization_code",
-        "code": auth_code,
-        "redirect_uri": REDIRECT_URI,
-    }
-    response = requests.post(
-        TOKEN_URL,
-        data=data,
-        auth=(CLIENT_ID, CLIENT_SECRET),
-    )
+    # Zoom's Challenge-Response Check
+    if "plainToken" in data:
+        print("DEBUG: Challenge-Response Received")
+        return jsonify({"plainToken": data["plainToken"]})
 
-    if response.status_code != 200:
-        return jsonify({"error": "Failed to retrieve access token"}), response.status_code
+    # Validate Verification Token
+    if data.get("token") != VERIFICATION_TOKEN:
+        print("ERROR: Verification token mismatch")
+        return jsonify({"error": "Invalid Verification Token"}), 403
 
-    response_data = response.json()
-    return jsonify({"access_token": response_data.get("access_token")})
+    # Process incoming webhook events
+    event = data.get("event", "unknown_event")
+    print(f"Received event: {event}")
 
-@app.route("/zoom-data/<token>")
-def get_zoom_data(token):
-    try:
-        # Make the request to Zoom API
-        response = requests.get(
-            "https://api.zoom.us/v2/chat/users/me/messages",
-            headers={"Authorization": f"Bearer {token}"},
-        )
+    # Example: Extract emojis from message events (if applicable)
+    if event == "meeting.participant_joined":
+        participant_data = data.get("payload", {}).get("object", {})
+        print(f"Participant Joined: {participant_data.get('participant', {}).get('user_name', 'Unknown')}")
 
-        # Debugging: Print response details
-        print("DEBUG: Chat Messages API Response")
-        print("Status Code:", response.status_code)
-        print("Response Headers:", response.headers)
-        print("Response Text:", response.text)
+    if event == "meeting.chat_message_sent":
+        message = data.get("payload", {}).get("object", {}).get("message", "")
+        emojis = extract_emojis(message)
+        print(f"Chat Message: {message}")
+        print(f"Emojis Extracted: {emojis}")
 
-        # Handle non-200 status codes gracefully
-        if response.status_code != 200:
-            error_message = f"Failed to retrieve chat messages: {response.json().get('message', 'Unknown Error')}"
-            print(f"ERROR: {error_message}")
-            return jsonify({"error": error_message}), response.status_code
-
-        # Process the messages and extract emojis
-        chat_messages = response.json().get("messages", [])
-        emojis = []
-        for msg in chat_messages:
-            message_text = msg.get("message", "")
-            emojis.extend(extract_emojis(message_text))
-
-        # Return the chat messages and extracted emojis
-        return jsonify({
-            "chat": [msg.get("message", "") for msg in chat_messages],
-            "reactions": emojis
-        })
-
-    except requests.exceptions.RequestException as e:
-        # Handle network-related errors
-        error_message = f"Network error: {str(e)}"
-        print(f"ERROR: {error_message}")
-        return jsonify({"error": error_message}), 500
-    except Exception as e:
-        # Catch-all for unexpected errors
-        error_message = f"Unexpected error: {str(e)}"
-        print(f"ERROR: {error_message}")
-        return jsonify({"error": error_message}), 500
+    # Respond to Zoom that the event was received
+    return "OK", 200
 
 
 if __name__ == "__main__":
