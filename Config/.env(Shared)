@@ -1,0 +1,4 @@
+
+# Shared environment variables
+TECHHUB_PATH=/mnt/data/TechHub
+ENV=shared
