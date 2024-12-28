@@ -13,7 +13,6 @@ load_dotenv()
 
 # Debugging: Print loaded environment variables
 print("DEBUG: Environment Variables Loaded")
-print("REDIRECT_URI:", os.getenv("REDIRECT_URI"))
 
 # Retrieve environment variables
 SECRET_TOKEN = os.getenv("SECRET_TOKEN")
@@ -50,6 +49,13 @@ def home():
 @app.route("/webhooks/notifications", methods=["POST"])
 def handle_zoom_webhook():
     """Handles incoming Zoom webhook events."""
+    # Verify the request with Authorization header
+    token = request.headers.get("Authorization")
+    if token != f"Bearer {SECRET_TOKEN}":
+        print("ERROR: Unauthorized access attempt")
+        return jsonify({"error": "Unauthorized"}), 401
+
+    # Parse the incoming JSON data
     data = request.json
 
     # Zoom's Challenge-Response Check
@@ -62,24 +68,31 @@ def handle_zoom_webhook():
         print("ERROR: Verification token mismatch")
         return jsonify({"error": "Invalid Verification Token"}), 403
 
-    # Process incoming webhook events
-    event = data.get("event", "unknown_event")
-    print(f"Received event: {event}")
+    try:
+        # Handle specific events
+        event = data.get("event", "unknown_event")
+        print(f"Received event: {event}")
 
-    # Example: Extract emojis from message events (if applicable)
-    if event == "meeting.participant_joined":
-        participant_data = data.get("payload", {}).get("object", {})
-        print(f"Participant Joined: {participant_data.get('participant', {}).get('user_name', 'Unknown')}")
+        if event == "meeting.participant_joined":
+            participant_data = data.get("payload", {}).get("object", {})
+            user_name = participant_data.get("participant", {}).get("user_name", "Unknown")
+            print(f"Participant Joined: {user_name}")
 
-    if event == "meeting.chat_message_sent":
-        message = data.get("payload", {}).get("object", {}).get("message", "")
-        emojis = extract_emojis(message)
-        print(f"Chat Message: {message}")
-        print(f"Emojis Extracted: {emojis}")
+        elif event == "meeting.chat_message_sent":
+            message = data.get("payload", {}).get("object", {}).get("message", "")
+            emojis = extract_emojis(message)
+            print(f"Chat Message: {message}")
+            print(f"Emojis Extracted: {emojis}")
+
+        else:
+            print(f"Unhandled event type: {event}")
+
+    except Exception as e:
+        print(f"ERROR: An unexpected error occurred: {str(e)}")
+        return jsonify({"error": "Internal Server Error"}), 500
 
     # Respond to Zoom that the event was received
     return "OK", 200
-
 
 if __name__ == "__main__":
     app.run(port=5000)
