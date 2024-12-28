@@ -1,0 +1,13 @@
+# Ignore macOS metadata files
+.DS_Store
+
+# Ignore Python virtual environment folder
+venv/
+
+# Ignore environment files
+Config/.env
+
+# Ignore Vercel metadata
+.vercel/
+Config/.env
+.vercel/
