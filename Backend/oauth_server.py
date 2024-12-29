@@ -1,22 +1,27 @@
-import requests
-from flask import Flask, request, jsonify
-import re  # For extracting emojis
-from dotenv import load_dotenv
-import os
+import os  # To interact with environment variables
+import re  # For emoji extraction
+from flask import Flask, request, jsonify  # Flask utilities
+from dotenv import load_dotenv  # To load .env variables
 
 # =======================
 # Configuration Section
 # =======================
 
 # Load environment variables from .env file
-load_dotenv("/Users/craighubbard/Documents/VirtualStageAcademy/TechHub/Config/.env")
-
-# Debugging: Print loaded environment variables
-print("DEBUG: Environment Variables Loaded")
+ENV_PATH = "/Users/craighubbard/Documents/VirtualStageAcademy/TechHub/Config/.env"
+if os.path.exists(ENV_PATH):
+    load_dotenv(ENV_PATH)
+    print(f"DEBUG: Loaded environment variables from {ENV_PATH}")
+else:
+    print(f"ERROR: Environment file not found at {ENV_PATH}")
 
 # Retrieve environment variables
 SECRET_TOKEN = os.getenv("SECRET_TOKEN")
 VERIFICATION_TOKEN = os.getenv("VERIFICATION_TOKEN")
+
+# Debugging: Ensure variables are loaded
+if not SECRET_TOKEN or not VERIFICATION_TOKEN:
+    raise EnvironmentError("Missing essential environment variables! Check .env file.")
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -25,8 +30,8 @@ app = Flask(__name__)
 # Utility Functions
 # =======================
 
-# Function to extract emojis from a text message (retain if needed for webhook events)
 def extract_emojis(text):
+    """Extract emojis from a given text message."""
     emoji_pattern = re.compile(
         "["  # Add Unicode ranges for emojis
         "\U0001F600-\U0001F64F"  # Emoticons
@@ -50,46 +55,49 @@ def home():
 @app.route("/webhooks/notifications", methods=["POST"])
 def handle_zoom_webhook():
     """Handles incoming Zoom webhook events."""
-    # Verify the request with Authorization header
-    token = request.headers.get("Authorization")
-    if token != f"Bearer {SECRET_TOKEN}":
-        print("ERROR: Unauthorized access attempt")
-        return jsonify({"error": "Unauthorized"}), 401
-
-    # Parse the incoming JSON data
-    data = request.json
-
-    # Zoom's Challenge-Response Check
-    if "plainToken" in data:
-        print("DEBUG: Challenge-Response Received")
-        return jsonify({"plainToken": data["plainToken"]})
-
-    # Validate Verification Token
-    if data.get("token") != VERIFICATION_TOKEN:
-        print("ERROR: Verification token mismatch")
-        return jsonify({"error": "Invalid Verification Token"}), 403
-
     try:
-        # Handle the chat message event
+        # Verify the request with Authorization header
+        token = request.headers.get("Authorization")
+        if token != f"Bearer {SECRET_TOKEN}":
+            print("ERROR: Unauthorized access attempt")
+            return jsonify({"error": "Unauthorized"}), 401
+        
+        # Parse the incoming JSON data
+        data = request.json or {}
+        
+        # Zoom's Challenge-Response Check
+        if "plainToken" in data:
+            print("DEBUG: Challenge-Response Received")
+            return jsonify({"plainToken": data["plainToken"]})
+        
+        # Validate Verification Token
+        if data.get("token") != VERIFICATION_TOKEN:
+            print("ERROR: Verification token mismatch")
+            return jsonify({"error": "Invalid Verification Token"}), 403
+        
+        # Process events
         event = data.get("event", "unknown_event")
-        print(f"Received event: {event}")
-
+        print(f"DEBUG: Received event: {event}")
+        
         if event == "meeting.chat_message_sent":
-            message_data = data.get("payload", {}).get("object", {})
-            message = message_data.get("message", "")
+            payload = data.get("payload", {}).get("object", {})
+            message = payload.get("message", "")
             emojis = extract_emojis(message)
             print(f"Chat Message: {message}")
-            print(f"Emojis Extracted: {emojis}")
-
+            print(f"Extracted Emojis: {emojis}")
+        
         else:
-            print(f"Unhandled event type: {event}")
+            print(f"INFO: Unhandled event type: {event}")
+        
+        return jsonify({"message": "Event received"}), 200
 
     except Exception as e:
-        print(f"ERROR: An unexpected error occurred: {str(e)}")
+        print(f"ERROR: An unexpected error occurred: {e}")
         return jsonify({"error": "Internal Server Error"}), 500
 
-    # Respond to Zoom that the event was received
-    return "OK", 200
+# =======================
+# Main Execution
+# =======================
 
 if __name__ == "__main__":
     app.run(port=5000)
