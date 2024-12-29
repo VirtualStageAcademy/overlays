@@ -1,27 +1,18 @@
 {
   "version": 2,
   "builds": [
-    { "src": "oauth_server.py", "use": "@vercel/python" }
+    { "src": "Backend/oauth_server.py", "use": "@vercel/python" }
   ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "oauth_server.py" }
+    { "source": "/(.*)", "destination": "Backend/oauth_server.py" }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self'; style-src 'self';"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "no-referrer"
-        }
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self';" },
+        { "key": "Referrer-Policy", "value": "no-referrer" }
       ]
     }
   ]

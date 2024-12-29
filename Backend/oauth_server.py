@@ -9,7 +9,7 @@ import os
 # =======================
 
 # Load environment variables from .env file
-load_dotenv()
+load_dotenv("/Users/craighubbard/Documents/VirtualStageAcademy/TechHub/Config/.env")
 
 # Debugging: Print loaded environment variables
 print("DEBUG: Environment Variables Loaded")
@@ -44,6 +44,7 @@ def extract_emojis(text):
 
 @app.route("/")
 def home():
+    """Default route to confirm the app is running."""
     return "Webhook App is Running!"
 
 @app.route("/webhooks/notifications", methods=["POST"])
@@ -69,17 +70,13 @@ def handle_zoom_webhook():
         return jsonify({"error": "Invalid Verification Token"}), 403
 
     try:
-        # Handle specific events
+        # Handle the chat message event
         event = data.get("event", "unknown_event")
         print(f"Received event: {event}")
 
-        if event == "meeting.participant_joined":
-            participant_data = data.get("payload", {}).get("object", {})
-            user_name = participant_data.get("participant", {}).get("user_name", "Unknown")
-            print(f"Participant Joined: {user_name}")
-
-        elif event == "meeting.chat_message_sent":
-            message = data.get("payload", {}).get("object", {}).get("message", "")
+        if event == "meeting.chat_message_sent":
+            message_data = data.get("payload", {}).get("object", {})
+            message = message_data.get("message", "")
             emojis = extract_emojis(message)
             print(f"Chat Message: {message}")
             print(f"Emojis Extracted: {emojis}")
