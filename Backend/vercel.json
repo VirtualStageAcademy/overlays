@@ -2,19 +2,19 @@
   "version": 2,
   "builds": [
     {
-      "src": "oauth_server.py",
+      "src": "Backend/oauth_server.py",
       "use": "@vercel/python"
     }
   ],
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "oauth_server.py"
+      "source": "/webhooks/notifications",
+      "destination": "Backend/oauth_server.py"
     }
   ],
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/webhooks/notifications",
       "headers": [
         {
           "key": "X-Content-Type-Options",
