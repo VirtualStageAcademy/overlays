@@ -7,21 +7,32 @@ from dotenv import load_dotenv  # To load .env variables
 # Configuration Section
 # =======================
 
+import os
+from dotenv import load_dotenv
+
+# Define the path to the .env file
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ENV_PATH = os.path.join(BASE_DIR, "../Config/.env")
+
 # Load environment variables from .env file
-ENV_PATH = "/Users/craighubbard/Documents/VirtualStageAcademy/TechHub/Config/.env"
 if os.path.exists(ENV_PATH):
     load_dotenv(ENV_PATH)
     print(f"DEBUG: Loaded environment variables from {ENV_PATH}")
 else:
-    print(f"ERROR: Environment file not found at {ENV_PATH}")
+    raise FileNotFoundError(f"ERROR: Environment file not found at {ENV_PATH}")
 
 # Retrieve environment variables
 SECRET_TOKEN = os.getenv("SECRET_TOKEN")
 VERIFICATION_TOKEN = os.getenv("VERIFICATION_TOKEN")
 
 # Debugging: Ensure variables are loaded
-if not SECRET_TOKEN or not VERIFICATION_TOKEN:
-    raise EnvironmentError("Missing essential environment variables! Check .env file.")
+if not SECRET_TOKEN:
+    raise EnvironmentError("ERROR: SECRET_TOKEN is missing! Check .env file.")
+if not VERIFICATION_TOKEN:
+    raise EnvironmentError("ERROR: VERIFICATION_TOKEN is missing! Check .env file.")
+
+print(f"DEBUG: SECRET_TOKEN loaded successfully.")
+print(f"DEBUG: VERIFICATION_TOKEN loaded successfully.")
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -61,34 +72,44 @@ def handle_zoom_webhook():
         if token != f"Bearer {SECRET_TOKEN}":
             print("ERROR: Unauthorized access attempt")
             return jsonify({"error": "Unauthorized"}), 401
-        
+
         # Parse the incoming JSON data
         data = request.json or {}
-        
+
         # Zoom's Challenge-Response Check
         if "plainToken" in data:
             print("DEBUG: Challenge-Response Received")
             return jsonify({"plainToken": data["plainToken"]})
-        
+
         # Validate Verification Token
         if data.get("token") != VERIFICATION_TOKEN:
             print("ERROR: Verification token mismatch")
             return jsonify({"error": "Invalid Verification Token"}), 403
-        
+
         # Process events
         event = data.get("event", "unknown_event")
         print(f"DEBUG: Received event: {event}")
-        
+
         if event == "meeting.chat_message_sent":
+            # Process chat messages
             payload = data.get("payload", {}).get("object", {})
             message = payload.get("message", "")
             emojis = extract_emojis(message)
-            print(f"Chat Message: {message}")
-            print(f"Extracted Emojis: {emojis}")
-        
+            print(f"DEBUG: Chat Message: {message}")
+            print(f"DEBUG: Extracted Emojis: {emojis}")
+
+        elif event == "reaction_added":
+            # Process reactions
+            payload = data.get("payload", {}).get("object", {})
+            reaction = payload.get("reaction", "")
+            participant = payload.get("participant", {})
+            print(f"DEBUG: Reaction Added: {reaction}")
+            print(f"DEBUG: Participant Details: {participant}")
+
         else:
+            # Handle unhandled events
             print(f"INFO: Unhandled event type: {event}")
-        
+
         return jsonify({"message": "Event received"}), 200
 
     except Exception as e:
