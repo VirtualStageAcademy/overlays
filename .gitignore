@@ -1,4 +1,25 @@
+# Ignore Vercel configuration
 .vercel
+
+# Ignore macOS system files
 .DS_Store
+
+# Ignore Python virtual environment
 venv/
-Config/.env
+
+# Ignore environment variables file
+.env
+
+# Ignore old Config directory
+Config/
+
+# Ignore Python compiled files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore logs
+*.log
+
+# Ignore test and debug outputs
+tests/
