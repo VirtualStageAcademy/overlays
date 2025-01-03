@@ -119,13 +119,15 @@ def handle_zoom_webhook():
 
         event = data.get("event", "unknown_event")
         print(f"DEBUG: Received event: {event}")
-    
-        if event == "meeting.chat_message_sent":
+
+        if event == "meeting.chat_message_sent" or event == "webinar.chat_message_sent":
             payload = data.get("payload", {}).get("object", {})
             message = payload.get("message", "")
             emojis = extract_emojis(message)
+            participant_name = payload.get("sender", {}).get("display_name", "Unknown")
             print(f"DEBUG: Chat Message: {message}")
             print(f"DEBUG: Extracted Emojis: {emojis}")
+            print(f"DEBUG: Participant Name: {participant_name}")
         elif event == "reaction_added":
             payload = data.get("payload", {}).get("object", {})
             reaction = payload.get("reaction", "")
