@@ -6,6 +6,12 @@
       "use": "@vercel/python"
     }
   ],
+  "routes": [
+    {
+      "src": "/webhooks/notifications",
+      "dest": "/oauth_server.py"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
