@@ -6,10 +6,10 @@ app:
 
 # Zoom Configuration
 zoom:
-  redirect_uri: https://76f2-2401-d006-d508-5000-d14a-ab69-3707-25dd.ngrok-free.app/oauth/callback
-  # Uncomment when using production
+  redirect_uri: http://localhost:5000/callback  # Local development
+  # Uncomment and update when deploying to production
   # redirect_uri: https://overlays.virtualstageacademy.io/oauth/callback
-  webhook_endpoint: https://76f2-2401-d006-d508-5000-d14a-ab69-3707-25dd.ngrok-free.app/webhooks/no
+  webhook_endpoint: https://6861-2401-d006-d508-5000-d14a-ab69-3707-25dd.ngrok-free.app/webhooks/notifications
 
 # WebSocket Configuration
 websocket:
