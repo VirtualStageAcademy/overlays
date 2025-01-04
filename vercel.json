@@ -1,15 +1,13 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "oauth_server.py",
-      "use": "@vercel/python"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains"
+        },
         {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
@@ -24,5 +22,12 @@
         }
       ]
     }
-  ]
+  ],
+  "env": {
+    "DEV_WEBSOCKET_URL": "@dev_websocket_url",
+    "PREVIEW_WEBSOCKET_URL": "@preview_websocket_url",
+    "PROD_WEBSOCKET_URL": "@prod_websocket_url",
+    "DEV_HOME_URL": "@dev_home_url",
+    "PROD_HOME_URL": "@prod_home_url"
+  }
 }
