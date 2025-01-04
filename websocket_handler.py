@@ -3,18 +3,7 @@ import time
 import websocket
 import yaml
 from token_manager import load_tokens, refresh_access_token, save_tokens
-
-# ======================
-# Configuration Loader (Outside the Class)
-# ======================
-with open("config.yaml", "r") as file:
-    config = yaml.safe_load(file)
-
-# Get the current environment and WebSocket URL
-environment = config["app"]["environment"]
-websocket_url = config["websocket"][environment]["url"]
-
-print(f"[INFO] Using WebSocket URL: {websocket_url}")
+from config_loader import get_environment_config  # Dynamically get environment settings
 
 # ======================
 # WebSocketHandler Class
@@ -22,8 +11,10 @@ print(f"[INFO] Using WebSocket URL: {websocket_url}")
 class WebSocketHandler:
     def __init__(self):
         """
-        Initialize the WebSocketHandler with configuration.
+        Initialize the WebSocketHandler with dynamic configuration.
         """
+        # Load environment settings
+        _, websocket_url = get_environment_config()  # Dynamically fetch the WebSocket URL
         self.websocket_url = websocket_url
         self.token_issue_time = time.time()
         self.token_expiry_time = 3600  # Default token validity (1 hour)
@@ -63,7 +54,7 @@ class WebSocketHandler:
         )
         self.ws.on_open = self.on_open
         self.run_forever()
-
+        
     def run_forever(self):
         """
         Run the WebSocket connection and handle reconnections.
@@ -75,13 +66,13 @@ class WebSocketHandler:
                 print(f"[WARNING] WebSocket connection closed: {e}. Reconnecting...")
                 time.sleep(5)  # Wait before reconnecting
                 self.refresh_token_if_needed()
-
+                    
     def on_open(self, ws):
         """
         Called when the WebSocket connection is established.
         """
         print("[INFO] WebSocket connection established.")
-
+    
     def on_message(self, ws, message):
         """
         Called when a message is received from the WebSocket.

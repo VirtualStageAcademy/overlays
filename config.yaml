@@ -6,19 +6,19 @@ app:
 
 # Zoom Configuration
 zoom:
-  redirect_uri: https://76f2-2401-d006-d508-5000-d14a-ab69-3707-25dd.ngrok-free.app/oauth/callback  # Development URI
+  redirect_uri: https://76f2-2401-d006-d508-5000-d14a-ab69-3707-25dd.ngrok-free.app/oauth/callback
   # Uncomment when using production
   # redirect_uri: https://overlays.virtualstageacademy.io/oauth/callback
-  webhook_endpoint: https://76f2-2401-d006-d508-5000-d14a-ab69-3707-25dd.ngrok-free.app/webhooks/notifications
+  webhook_endpoint: https://76f2-2401-d006-d508-5000-d14a-ab69-3707-25dd.ngrok-free.app/webhooks/no
 
 # WebSocket Configuration
 websocket:
   development:
-    url: "wss://ws.zoom.us/ws?subscriptionId=LAUx-VqaTvOv70nUu6ru2A"
+    url: ${DEV_WEBSOCKET_URL}  # Dynamically replaced from .env
   preview:
-    url: "wss://ws.zoom.us/ws?subscriptionId=PREVIEW_SUBSCRIPTION_ID"
+    url: ${PREVIEW_WEBSOCKET_URL}  # Dynamically replaced from .env
   production:
-    url: "wss://ws.zoom.us/ws?subscriptionId=6H7bzaHRQh2k7YZxpH_7NQ"
+    url: ${PROD_WEBSOCKET_URL}  # Dynamically replaced from .env
 
 # Overlay Settings
 overlays:
