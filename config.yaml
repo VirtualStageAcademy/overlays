@@ -2,35 +2,29 @@
 app:
   name: Virtual Stage Academy
   version: 1.0
-  environment: development  # Change to 'production' when deploying to production
+  environment: development  # Change to 'production' or 'preview' when needed
 
 # Zoom Configuration
 zoom:
-  # Development: Use ngrok URL for local testing
-  redirect_uri: https://76f2-2401-d006-d508-5000-d14a-ab69-3707-25dd.ngrok-free.app/oauth/callback  # Use your ngrok URL for testing locally
-  # Production: Update this to the production URL
-  # redirect_uri: https://overlays.virtualstageacademy.io/oauth/callback  # Update this when switching to production
+  redirect_uri: https://76f2-2401-d006-d508-5000-d14a-ab69-3707-25dd.ngrok-free.app/oauth/callback  # Development URI
+  # Uncomment when using production
+  # redirect_uri: https://overlays.virtualstageacademy.io/oauth/callback
+  webhook_endpoint: https://76f2-2401-d006-d508-5000-d14a-ab69-3707-25dd.ngrok-free.app/webhooks/notifications
 
-  # Development: Use ngrok WebSocket URL for local testing
-  webhook_endpoint: wss://76f2-2401-d006-d508-5000-d14a-ab69-3707-25dd.ngrok-free.app/ws?subscriptionId=xxxxxxxxxxxxxx  # Use your ngrok WebSocket URL during development
-  # Production: Update this to your production WebSocket URL
-  # webhook_endpoint: wss://ws.zoom.us/ws?subscriptionId=6H7bzaHRQh2k7YZxpH_7NQ  # Update this when switching to production
-  
-  # Scopes: Ensure these are aligned with the features you need in both environments
-  scopes:
-    - meeting:read  # Read meeting data
-    - meeting:read:chat_message  # Read chat messages in meetings
-    - webinar:read:chat_message  # Read chat messages in webinars
-    - webinar:read:participant  # View webinar participants
-    - reaction:read  # Capture emoji reactions
-    - zoomapp:inmeeting  # Enable Zoom App within Zoom Meeting Client
-    - zoomapp:inwebinar  # Enable Zoom App within Zoom Webinar Client
+# WebSocket Configuration
+websocket:
+  development:
+    url: "wss://ws.zoom.us/ws?subscriptionId=LAUx-VqaTvOv70nUu6ru2A"
+  preview:
+    url: "wss://ws.zoom.us/ws?subscriptionId=PREVIEW_SUBSCRIPTION_ID"
+  production:
+    url: "wss://ws.zoom.us/ws?subscriptionId=6H7bzaHRQh2k7YZxpH_7NQ"
 
 # Overlay Settings
 overlays:
   default_style:
     font: "Arial"
-    color: "#FFFFFF"  # Default color is white; change to your preferred color
+    color: "#FFFFFF"
     size: 14
   positions:
     chat_overlay:
@@ -49,10 +43,3 @@ logging:
 features:
   enable_emoji_overlay: true
   enable_chat_moderation: false
-
-# Integration Settings
-integrations:
-  obs:
-    stream_deck_integration: true
-  google_analytics:
-    tracking_id: UA-XXXXXX-X

@@ -1,149 +1,129 @@
-import os  # To interact with environment variables
-import re  # For emoji extraction
-from flask import Flask, request, jsonify  # Flask utilities
-from dotenv import load_dotenv  # To load .env variables
-import yaml  # To load YAML configuration
-from base64 import b64encode  # For encoding client credentials
-import requests  # For making HTTP requests
+import os
+from flask import Flask, request, jsonify
+from dotenv import load_dotenv
+from base64 import b64encode
+import requests
+from token_manager import save_tokens, load_tokens, refresh_access_token  # Token management functions
+from websocket_handler import WebSocketHandler  # WebSocket handler
 
-# =======================
-# Configuration Section
-# =======================
-
-# Load environment variables from .env file
+# ==========================
+# Load Environment Variables
+# ==========================
 load_dotenv()
 
-# Load configuration from config.yaml
-def load_config():
-    config_path = "config.yaml"
-    with open(config_path, 'r') as config_file:
-        return yaml.safe_load(config_file)
+# ==========================
+# Helper: Load Environment Settings
+# ==========================
+def load_environment_settings():
+    active_env = os.getenv("ACTIVE_ENVIRONMENT", "development")
+    prefix = active_env.upper()
 
-# Load the configuration from YAML
-config = load_config()
+    settings = {
+        "client_id": os.getenv(f"{prefix}_CLIENT_ID"),
+        "client_secret": os.getenv(f"{prefix}_CLIENT_SECRET"),
+        "redirect_uri": os.getenv(f"{prefix}_REDIRECT_URI"),
+        "websocket_url": os.getenv(f"{prefix}_WEBSOCKET_URL"),
+        "home_url": os.getenv(f"{prefix}_HOME_URL"),
+    }
 
-# Retrieve Environment and Config Variables
-SECRET_TOKEN = os.getenv("SECRET_TOKEN")
-VERIFICATION_TOKEN = os.getenv("VERIFICATION_TOKEN")
-ZOOM_REDIRECT_URI = config['zoom']['redirect_uri']
-ZOOM_WEBHOOK_ENDPOINT = config['zoom']['webhook_endpoint']
-ZOOM_SCOPES = config['zoom']['scopes']
+    return settings
 
-# Debugging: Ensure variables are loaded
-if not SECRET_TOKEN:
-    raise EnvironmentError("ERROR: SECRET_TOKEN is missing! Check .env file.")
-if not VERIFICATION_TOKEN:
-    raise EnvironmentError("ERROR: VERIFICATION_TOKEN is missing! Check .env file.")
+# Load environment-specific settings
+env_settings = load_environment_settings()
+print(f"[INFO] Active Environment: {os.getenv('ACTIVE_ENVIRONMENT', 'development')}")
+print(f"[INFO] WebSocket URL: {env_settings['websocket_url']}")
 
-# Debug logs
-print(f"DEBUG: SECRET_TOKEN loaded successfully.")
-print(f"DEBUG: VERIFICATION_TOKEN loaded successfully.")
-print(f"DEBUG: Zoom Redirect URI loaded from config.yaml: {ZOOM_REDIRECT_URI}")
-
-# Initialize Flask app
+# ==========================
+# Flask App Initialization
+# ==========================
 app = Flask(__name__)
 
-# =======================
-# Middleware to Add OWASP Headers
-# =======================
-@app.after_request
-def add_owasp_headers(response):
-    """Add OWASP security headers to the response"""
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["Content-Security-Policy"] = "default-src 'self';"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    return response
-
-# =======================
-# Utility Functions
-# =======================
-def extract_emojis(text):
-    """Extract emojis from a given text message."""
-    emoji_pattern = re.compile(
-        "["  # Add Unicode ranges for emojis
-        "\U0001F600-\U0001F64F"  # Emoticons
-        "\U0001F300-\U0001F5FF"  # Symbols & pictographs
-        "\U0001F680-\U0001F6FF"  # Transport & map symbols
-        "\U0001F700-\U0001F77F"  # Alchemical symbols
-        "\U0001FA00-\U0001FAFF"  # Supplemental symbols
-        "]+", flags=re.UNICODE
-    )
-    return emoji_pattern.findall(text)
-
-# =======================
-# Flask Routes
-# =======================
 @app.route("/")
 def home():
-    """Default route to confirm the app is running."""
-    return "OAuth App is Running!"
+    """
+    Root route to display a clickable link for Zoom authorization.
+    """
+    zoom_auth_url = (
+        f"https://zoom.us/oauth/authorize?"
+        f"client_id={env_settings['client_id']}&"
+        f"response_type=code&"
+        f"redirect_uri={env_settings['redirect_uri']}"
+    )
+    return f'<a href="{zoom_auth_url}">Click here to authorize with Zoom</a>'
 
-@app.route('/callback', methods=['GET'])
+@app.route("/callback", methods=["GET"])
 def callback():
-    code = request.args.get('code', None)
-    if code:
-        # Exchange code for an access token
-        token_url = "https://zoom.us/oauth/token"
-        payload = {
-            'grant_type': 'authorization_code',
-            'code': code,
-            'redirect_uri': ZOOM_REDIRECT_URI
-        }
-        headers = {
-            'Authorization': 'Basic ' + b64encode(f"{os.getenv('ZOOM_CLIENT_ID')}:{os.getenv('ZOOM_CLIENT_SECRET')}".encode()).decode()
-        }
-        response = requests.post(token_url, data=payload, headers=headers)
-        if response.status_code == 200:
-            tokens = response.json()
-            return jsonify({"access_token": tokens.get("access_token"), "refresh_token": tokens.get("refresh_token")}), 200
-        else:
-            return jsonify({"error": "Failed to obtain access token", "status": response.status_code}), response.status_code
+    """
+    OAuth callback route to exchange authorization code for tokens.
+    """
+    code = request.args.get("code")
+    if not code:
+        return jsonify({"error": "Authorization code is missing"}), 400
+
+    # Exchange the authorization code for access and refresh tokens
+    token_url = "https://zoom.us/oauth/token"
+    payload = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": ZOOM_REDIRECT_URI
+    }
+    headers = {
+        "Authorization": f"Basic {b64encode(f'{ZOOM_CLIENT_ID}:{ZOOM_CLIENT_SECRET}'.encode()).decode()}"
+    }
+
+    response = requests.post(token_url, data=payload, headers=headers)
+    if response.status_code == 200:
+        tokens = response.json()
+        access_token = tokens.get("access_token")
+        refresh_token = tokens.get("refresh_token")
+        save_tokens(access_token, refresh_token)  # Save tokens to file
+        print("[INFO] Access and refresh tokens saved successfully.")
+        return jsonify({"message": "Authorization successful!"})
     else:
-        return jsonify({"error": "No code provided"}), 400
+        print(f"[ERROR] Failed to exchange code for tokens: {response.status_code} - {response.text}")
+        return jsonify({"error": "Failed to obtain access token"}), 500
 
-@app.route("/webhooks/notifications", methods=["POST"])
-def handle_zoom_webhook():
-    """Handles incoming Zoom webhook events."""
+@app.route("/start_websocket", methods=["POST"])
+def start_websocket():
+    """
+    Start the WebSocket connection using the current access token.
+    """
+    access_token, refresh_token = load_tokens()
+
+    if not access_token or not refresh_token:
+        return jsonify({"error": "Missing access or refresh token. Authorize the app first."}), 400
+
+    # Initialize WebSocket handler
+    websocket_url = config["websocket"][WEB_SOCKET_ENV]["url"]
+    websocket_handler = WebSocketHandler({
+        "environment": WEB_SOCKET_ENV,
+        "websocket": {
+            "url": f"{websocket_url}&access_token={access_token}"
+        }
+    })
+
     try:
-        token = request.headers.get("Authorization")
-        if token != f"Bearer {SECRET_TOKEN}":
-            return jsonify({"error": "Unauthorized"}), 401
-
-        data = request.json or {}
-        if "plainToken" in data:
-            return jsonify({"plainToken": data["plainToken"]})
-
-        if data.get("token") != VERIFICATION_TOKEN:
-            return jsonify({"error": "Invalid Verification Token"}), 403
-
-        event = data.get("event", "unknown_event")
-        print(f"DEBUG: Received event: {event}")
-
-        if event == "meeting.chat_message_sent" or event == "webinar.chat_message_sent":
-            payload = data.get("payload", {}).get("object", {})
-            message = payload.get("message", "")
-            emojis = extract_emojis(message)
-            participant_name = payload.get("sender", {}).get("display_name", "Unknown")
-            print(f"DEBUG: Chat Message: {message}")
-            print(f"DEBUG: Extracted Emojis: {emojis}")
-            print(f"DEBUG: Participant Name: {participant_name}")
-        elif event == "reaction_added":
-            payload = data.get("payload", {}).get("object", {})
-            reaction = payload.get("reaction", "")
-            participant = payload.get("participant", {})
-            print(f"DEBUG: Reaction Added: {reaction}")
-            print(f"DEBUG: Participant Details: {participant}")
-        else:
-            print(f"INFO: Unhandled event type: {event}")
-        return jsonify({"message": "Event received"}), 200
+        websocket_handler.connect()
+        return jsonify({"message": "WebSocket connection started successfully."})
     except Exception as e:
-        print(f"ERROR: An unexpected error occurred: {e}")
-        return jsonify({"error": "Internal Server Error"}), 500
+        print(f"[ERROR] Failed to start WebSocket: {e}")
+        return jsonify({"error": str(e)}), 500
 
-# =======================
-# Main Execution
-# =======================
+@app.route("/refresh_tokens", methods=["POST"])
+def refresh_tokens_route():
+    """
+    Route to manually refresh tokens if needed.
+    """
+    _, refresh_token = load_tokens()
+    if not refresh_token:
+        return jsonify({"error": "Missing refresh token. Authorize the app first."}), 400
+
+    new_access_token, new_refresh_token = refresh_access_token(refresh_token)
+    if new_access_token and new_refresh_token:
+        save_tokens(new_access_token, new_refresh_token)
+        return jsonify({"message": "Tokens refreshed successfully."})
+    else:
+        return jsonify({"error": "Failed to refresh tokens."}), 500
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(debug=True, host="0.0.0.0", port=port)
+    app.run(debug=True, host="0.0.0.0", port=5000)
