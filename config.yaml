@@ -9,7 +9,7 @@ zoom:
   redirect_uri: http://localhost:5000/callback  # Local development
   # Uncomment and update when deploying to production
   # redirect_uri: https://overlays.virtualstageacademy.io/oauth/callback
-  webhook_endpoint: https://6861-2401-d006-d508-5000-d14a-ab69-3707-25dd.ngrok-free.app/webhooks/notifications
+  DEV_WEBSOCKET_URL: wss://ws.zoom.us/ws?subscriptionId=LAUx-VqaTvOv70nUu6ru2A
 
 # WebSocket Configuration
 websocket:
