@@ -77,7 +77,7 @@ class WebSocketHandler:
 ### 1. Local Testing
 ```bash
 # Start local server
-python oauth_server.py
+python -m src.server.oauth_server
 
 # Start ngrok tunnel
 ngrok http 5000
