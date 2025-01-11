@@ -1,0 +1,54 @@
+#chat-container {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 300px;
+    max-height: 400px;
+    overflow-y: hidden;
+    pointer-events: none;
+}
+
+.chat-message {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    margin: 5px;
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 3px solid #4CAF50;
+    animation: slideIn 0.3s ease-in;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transform-origin: left;
+}
+
+.chat-message .sender {
+    color: #4CAF50;
+    font-weight: bold;
+    margin-right: 8px;
+    font-size: 0.9em;
+    text-transform: uppercase;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOut {
+    to {
+        opacity: 0;
+        transform: translateX(-20px);
+        height: 0;
+        margin: 0;
+        padding: 0;
+    }
+}
+
+.messages-wrapper > div:nth-child(n+6) {
+    animation: slideOut 0.5s forwards;
+} 

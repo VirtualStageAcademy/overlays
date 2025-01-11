@@ -1,0 +1,485 @@
+{
+    "rules": {
+        "context_initialization": {
+            "description": "Starting point for each interaction with the VSA project",
+            "steps": [
+                "ALWAYS read `.notes/project_overview.md` to understand the project's purpose and architecture.",
+                "ALWAYS read `.notes/task_list.md` to check current priorities and statuses.",
+                "ALWAYS read `.notes/development_guidelines.md` for setup and workflow procedures.",
+                "ALWAYS reference `.notes/config_overview.md` for details on environment variables and system configurations.",
+                "ALWAYS read `.notes/directory_structure.md` for project organization and file relationships",
+                "ALWAYS check `.notes/dev_tools/init_session.sh` for initialization procedures.",
+                "NEVER use `.env` directly; refer to `.env.example` for environment variable documentation.",
+                "ALWAYS verify virtual environment status in `.venv`",
+                "ALWAYS check server initialization status",
+                "ALWAYS read `.notes/zoom_integration.md` for detailed Zoom integration specifications"
+            ],
+            "required_files": [
+                "project_structure.txt",
+                ".notes/project_overview.md",
+                ".notes/task_list.md",
+                ".notes/development_guidelines.md",
+                ".notes/config_overview.md",
+                ".notes/directory_structure.md",
+                ".notes/dev_tools/init_session.sh",
+                ".env.example",
+                ".venv/",
+                ".notes/dev_tools/init_session.sh",
+                ".notes/zoom_integration.md"
+            ],
+            "initialization_sequence": [
+                "Verify virtual environment exists and is activated",
+                "Load and validate directory structure from .notes/directory_structure.md",
+                "Load project structure from project_structure.txt",
+                "Initialize development environment settings",
+                "Validate documentation availability",
+                "Load configuration parameters",
+                "Check test environment setup"
+            ],
+            "required_context": [
+                "Project structure and organization from directory_structure.md",
+                "Development guidelines and procedures",
+                "Configuration and environment setup",
+                "Testing protocols and requirements",
+                "Documentation standards and locations"
+            ]
+        },
+        "operational_protocol": {
+            "description": "How to approach tasks and execute changes in the VSA project",
+            "before_action": [
+                "Review `.notes/directory_structure.md` to understand component relationships",
+                "Create a MECE task breakdown (Mutually Exclusive, Collectively Exhaustive) to ensure all subtasks are addressed.",
+                "Review related sections in `.notes/directory_structure.md` to locate relevant files."
+            ],
+            "code_changes": [
+                "ALWAYS read relevant code sections before editing to maintain context.",
+                "ALWAYS preserve existing functionality and avoid breaking changes.",
+                "ALWAYS maintain type safety and ensure proper error handling.",
+                "ALWAYS include comments for new or updated code to ensure maintainability.",
+                "RUN tests for affected components or systems before and after changes."
+            ]
+        },
+        "safety_requirements": {
+            "description": "Essential safety measures for all tasks",
+            "requirements": [
+                "NEVER break type safety or introduce vulnerabilities.",
+                "ALWAYS maintain proper error handling and logging for debuggability.",
+                "NEVER commit `.env` or other sensitive files to version control.",
+                "ALWAYS document decisions and changes in `.notes/meeting_notes.md`."
+            ]
+        },
+        "priorities": {
+            "description": "Priority list for AI assistance",
+            "files": [
+                {
+                    "source": "oauth_server.py",
+                    "weight": 1.0
+                },
+                {
+                    "source": "websocket_handler.py",
+                    "weight": 1.0
+                },
+                {
+                    "source": "token_manager.py",
+                    "weight": 0.9
+                },
+                {
+                    "source": "config_loader.py",
+                    "weight": 0.8
+                },
+                {
+                    "source": ".notes/",
+                    "weight": 0.7
+                }
+            ]
+        },
+        "modes": {
+            "base": {
+                "description": "For routine tasks and minor updates",
+                "guidelines": [
+                    "Focus on small, incremental improvements.",
+                    "Ensure backward compatibility."
+                ]
+            },
+            "enhanced": {
+                "description": "For solving complex problems or implementing new features",
+                "guidelines": [
+                    "Engage in iterative problem-solving with MECE task breakdowns.",
+                    "Use detailed comments and documentation for all significant changes."
+                ]
+            }
+        },
+        "project_directives": {
+            "name": "Virtual Stage Academy",
+            "ai_first": true,
+            "description": "This project integrates Zoom APIs with OBS overlays to provide dynamic, real-time audience engagement tools.",
+            "initialization": {
+                "command": "@.cursorrules",
+                "description": "Initialize all project context and learning requirements"
+            }
+        },
+        "documentation": {
+            "description": "How to handle and update project documentation",
+            "guidelines": [
+                "Keep `.notes/project_overview.md` up to date with major changes in the architecture or goals.",
+                "Update `.notes/task_list.md` after completing or adding tasks.",
+                "Generate `.notes/directory_structure.md` regularly to reflect changes in the project's structure."
+            ]
+        },
+        "environment_handling": {
+            "description": "Best practices for managing environment variables and configurations",
+            "rules": [
+                "ALWAYS use `.env.example` for documenting required environment variables.",
+                "NEVER expose `.env` in commits or AI context.",
+                "For production, set environment variables directly in Vercel or other deployment platforms.",
+                "ALWAYS verify virtual environment activation before starting servers",
+                "ALWAYS update ngrok URLs in .env after server initialization"
+            ],
+            "virtual_environment": {
+                "location": ".venv",
+                "activation_command": "source .venv/bin/activate",
+                "verification": "check for (.venv) in terminal prompt"
+            }
+        },
+        "testing_protocols": {
+            "description": "Guidelines for testing changes and ensuring quality",
+            "steps": [
+                "RUN all unit tests related to affected files after making changes.",
+                "VALIDATE OAuth flows end-to-end to ensure proper token management.",
+                "TEST WebSocket connections in both development and production environments.",
+                "VERIFY new features or bug fixes in both local and deployed environments before finalizing.",
+                "CONDUCT stress tests and security audits regularly, especially before major releases."
+            ]
+        },
+        "learning_initialization": {
+            "command": "@.cursorrules",
+            "sequence": [
+                "Load project structure",
+                "Initialize documentation context",
+                "Set up development environment",
+                "Validate configuration",
+                "Prepare testing environment"
+            ],
+            "required_context": [
+                "Project structure and organization",
+                "Development guidelines and procedures",
+                "Configuration and environment setup",
+                "Testing protocols and requirements",
+                "Documentation standards and locations"
+            ],
+            "sequence": [
+                "Load and validate directory structure",
+                "Cross-reference with project_structure.txt",
+                "Verify all components exist",
+                "Initialize documentation context",
+                "Set up development environment",
+                "Validate configuration",
+                "Prepare testing environment"
+            ],
+            "directory_validation": {
+                "source": ".notes/directory_structure.md",
+                "validation_steps": [
+                    "Verify all core components exist",
+                    "Check component relationships",
+                    "Validate file locations",
+                    "Confirm documentation paths"
+                ]
+            }
+        },
+        "server_initialization": {
+            "description": "Server startup and verification procedures",
+            "environments": {
+                "development": {
+                    "steps": [
+                        "Activate virtual environment with 'source .venv/bin/activate'",
+                        "Start local server with 'python oauth_server.py'",
+                        "Start ngrok tunnel with 'ngrok http 5000'",
+                        "Update .env with new ngrok URLs",
+                        "Verify server health at localhost:5000/health",
+                        "Verify ngrok tunnel connectivity"
+                    ],
+                    "verification": {
+                        "local_server": "http://localhost:5000/health",
+                        "ngrok_tunnel": "https://{ngrok-url}/health",
+                        "websocket": "wss://{ngrok-url}/ws"
+                    }
+                },
+                "production": {
+                    "steps": [
+                        "Verify Vercel deployment status",
+                        "Check production environment variables",
+                        "Verify SSL certificates",
+                        "Check domain DNS configuration",
+                        "Test production endpoints",
+                        "Monitor server logs"
+                    ],
+                    "verification": {
+                        "main_server": "https://overlays.virtualstageacademy.io/health",
+                        "websocket": "wss://overlays.virtualstageacademy.io/ws",
+                        "oauth": "https://overlays.virtualstageacademy.io/oauth/status"
+                    }
+                }
+            },
+            "health_checks": {
+                "endpoints": [
+                    "/health",
+                    "/oauth/status",
+                    "/ws/status"
+                ],
+                "interval": "60s",
+                "timeout": "5s",
+                "success_threshold": 1,
+                "failure_threshold": 3
+            },
+            "error_handling": {
+                "retry_strategy": {
+                    "max_attempts": 3,
+                    "delay": "5s",
+                    "backoff_multiplier": 2
+                },
+                "notifications": {
+                    "channels": ["logs", "monitoring"],
+                    "severity_levels": ["warning", "error", "critical"]
+                }
+            },
+            "monitoring": {
+                "metrics": [
+                    "server_uptime",
+                    "response_time",
+                    "active_connections",
+                    "error_rate",
+                    "memory_usage"
+                ],
+                "alerts": {
+                    "response_time_threshold": "2s",
+                    "error_rate_threshold": "1%",
+                    "memory_threshold": "80%"
+                }
+            }
+        },
+        "deployment_verification": {
+            "description": "Comprehensive deployment verification procedures",
+            "environments": {
+                "development": {
+                    "pre_deploy": [
+                        "Run all unit tests",
+                        "Verify virtual environment dependencies",
+                        "Check .env configuration",
+                        "Validate ngrok tunnel status"
+                    ],
+                    "post_deploy": [
+                        "Verify OAuth callback functionality",
+                        "Test WebSocket connections",
+                        "Check all overlay endpoints",
+                        "Validate environment variables"
+                    ]
+                },
+                "staging": {
+                    "pre_deploy": [
+                        "Run integration tests",
+                        "Verify Vercel preview deployment",
+                        "Check staging environment variables",
+                        "Validate database connections"
+                    ],
+                    "post_deploy": [
+                        "Run end-to-end tests",
+                        "Verify SSL certificates",
+                        "Test all API endpoints",
+                        "Check logging and monitoring"
+                    ]
+                },
+                "production": {
+                    "pre_deploy": [
+                        "Verify staging deployment success",
+                        "Backup production data",
+                        "Check DNS configuration",
+                        "Validate SSL certificates",
+                        "Review security settings"
+                    ],
+                    "post_deploy": [
+                        "Verify domain configuration",
+                        "Test production endpoints",
+                        "Check CDN configuration",
+                        "Monitor error rates",
+                        "Verify backup systems",
+                        "Test failover mechanisms"
+                    ]
+                }
+            },
+            "verification_endpoints": {
+                "oauth": {
+                    "paths": [
+                        "/oauth/status",
+                        "/oauth/callback",
+                        "/oauth/refresh"
+                    ],
+                    "methods": ["GET", "POST"],
+                    "timeout": "5s"
+                },
+                "websocket": {
+                    "paths": [
+                        "/ws",
+                        "/ws/status"
+                    ],
+                    "protocols": ["wss"],
+                    "timeout": "10s"
+                },
+                "overlays": {
+                    "paths": [
+                        "/overlays/chat",
+                        "/overlays/reactions",
+                        "/overlays/word-cloud",
+                        "/overlays/world-map",
+                        "/overlays/countdown"
+                    ],
+                    "methods": ["GET"],
+                    "timeout": "3s"
+                }
+            },
+            "rollback_procedures": {
+                "triggers": [
+                    "High error rate (>1%)",
+                    "Failed health checks",
+                    "Authentication failures",
+                    "Database connection issues"
+                ],
+                "steps": [
+                    "Revert to last known good deployment",
+                    "Restore environment configuration",
+                    "Verify system stability",
+                    "Notify development team"
+                ],
+                "verification": [
+                    "Check system health",
+                    "Verify data integrity",
+                    "Test critical paths",
+                    "Monitor error rates"
+                ]
+            }
+        },
+        "ai_assistant_reminders": {
+            "description": "Critical reminders for effective assistance",
+            "key_points": [
+                "DON'T go in circles - if something works, don't change it",
+                "ALWAYS check project documentation FIRST before suggesting changes",
+                "FOCUS on the actual problem instead of making unnecessary changes",
+                "BE DIRECT about what isn't working or what you don't understand",
+                "MAINTAIN a systematic debugging approach",
+                "DOCUMENT all attempted solutions and their outcomes",
+                "ADMIT when you're unsure instead of making assumptions"
+            ],
+            "debugging_protocol": {
+                "steps": [
+                    "Read all relevant documentation first",
+                    "Understand the current working state",
+                    "Identify the specific issue",
+                    "Research the error (e.g., Zoom error 4700)",
+                    "Test one change at a time",
+                    "Document all attempts and outcomes"
+                ]
+            }
+        },
+        "deployment_protocols": {
+            "description": "Procedures for deploying changes to production",
+            "steps": [
+                "ENSURE automated rollback is set based on specific error rates or performance metrics.",
+                "PERFORM automated smoke tests post-deployment to ensure basic functionalities."
+            ]
+        },
+        "documentation_updates": {
+            "description": "Regular updates and reviews of project documentation",
+            "steps": [
+                "SCHEDULE bi-weekly or monthly reviews of all critical documentation.",
+                "MAINTAIN a change log in project_overview.md to document significant changes over time."
+            ]
+        },
+        "session_management": {
+            "description": "Session control commands and protocols",
+            "commands": {
+                "start": {
+                    "triggers": [
+                        "!startsession",
+                        "!cursorrules",
+                        "@.cursorrules"
+                    ],
+                    "description": "Initialize all project context and learning requirements",
+                    "session_metadata": {
+                        "timestamp_start": "ISO_TIMESTAMP",
+                        "session_id": "UUID",
+                        "initial_state": {
+                            "directory_hash": "SHA256_OF_STRUCTURE",
+                            "active_files": ["List of files at start"],
+                            "documentation_versions": {
+                                "directory_structure.md": "HASH",
+                                "project_overview.md": "HASH",
+                                "task_list.md": "HASH"
+                            }
+                        }
+                    }
+                },
+                "end": {
+                    "triggers": [
+                        "!endsession",
+                        "@.endsession"
+                    ],
+                    "description": "Finalize session and update documentation",
+                    "requires": {
+                        "active_session_id": true,
+                        "start_timestamp": true
+                    },
+                    "update_sequence": [
+                        "Compare current state with session_start state",
+                        "Identify files modified during session timeframe",
+                        "Generate diff of documentation changes",
+                        "Update directory_structure.md if changed",
+                        "Log session changes to meeting_notes.md with session_id reference",
+                        "Update task_list.md with completed items",
+                        "Record session summary with start/end timestamps"
+                    ],
+                    "session_closure": {
+                        "metadata": {
+                            "timestamp_end": "ISO_TIMESTAMP",
+                            "duration": "CALCULATED",
+                            "files_modified": ["List of changed files"],
+                            "documentation_updates": {
+                                "file": "change_type"
+                            }
+                        },
+                        "summary_format": {
+                            "session_id": "UUID",
+                            "start_time": "ISO_TIMESTAMP",
+                            "end_time": "ISO_TIMESTAMP",
+                            "duration": "HH:MM:SS",
+                            "changes_summary": {
+                                "files_modified": [],
+                                "docs_updated": [],
+                                "tasks_completed": []
+                            }
+                        }
+                    }
+                }
+            },
+            "session_tracking": {
+                "format": {
+                    "session_id": "UUID",
+                    "timestamp_start": "ISO_TIMESTAMP",
+                    "timestamp_end": "ISO_TIMESTAMP",
+                    "changes": {
+                        "files": [],
+                        "documentation": [],
+                        "tasks": []
+                    },
+                    "context": {
+                        "chat_start_marker": "MESSAGE_ID",
+                        "chat_end_marker": "MESSAGE_ID"
+                    }
+                },
+                "storage": {
+                    "location": ".notes/session_history.json",
+                    "format": "JSON",
+                    "retention": "90_DAYS"
+                }
+            }
+        }
+    }
+}

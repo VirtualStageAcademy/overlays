@@ -1,0 +1,50 @@
+{
+    "rules": {
+        "context_initialization": {
+            "description": "Starting point for each interaction with the VSA project",
+            "steps": [
+                "ALWAYS read `.notes/project_overview.md` to understand the project's purpose and architecture",
+                "ALWAYS read `.notes/development_guidelines.md` for setup and workflow procedures",
+                "ALWAYS read `.notes/task_list.md` to check current priorities and statuses",
+                "ALWAYS reference `.notes/config_overview.md` for details on environment variables and system configurations",
+                "NEVER use `.env` directly; refer to `.env.example` for environment variable documentation"
+            ]
+        },
+        "operational_protocol": {
+            "description": "How to approach tasks and execute changes in the VSA project",
+            "before_action": [
+                "Create a MECE task breakdown (Mutually Exclusive, Collectively Exhaustive) to ensure all subtasks are addressed",
+                "Review `.notes/development_guidelines.md` for relevant procedures",
+                "Review related sections in `.notes/directory_structure.md` to locate relevant files"
+            ],
+            "code_changes": [
+                "ALWAYS read relevant code sections before editing to maintain context",
+                "ALWAYS preserve existing functionality and avoid breaking changes",
+                "ALWAYS maintain type safety and ensure proper error handling",
+                "ALWAYS include comments for new or updated code to ensure maintainability",
+                "RUN tests for affected components or systems before and after changes"
+            ]
+        },
+        "safety_requirements": {
+            "description": "Essential safety measures for all tasks",
+            "requirements": [
+                "NEVER break type safety or introduce vulnerabilities",
+                "ALWAYS maintain proper error handling and logging for debuggability",
+                "NEVER commit `.env` or other sensitive files to version control",
+                "ALWAYS document decisions and changes in `.notes/meeting_notes.md`"
+            ]
+        },
+        "ai_assistant_reminders": {
+            "description": "Critical reminders for effective assistance",
+            "key_points": [
+                "DON'T go in circles - if something works, don't change it",
+                "ALWAYS check project documentation FIRST before suggesting changes",
+                "FOCUS on the actual problem instead of making unnecessary changes",
+                "BE DIRECT about what isn't working or what you don't understand",
+                "MAINTAIN a systematic debugging approach",
+                "DOCUMENT all attempted solutions and their outcomes",
+                "ADMIT when you're unsure instead of making assumptions"
+            ]
+        }
+    }
+}

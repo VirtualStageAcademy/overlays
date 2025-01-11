@@ -1,0 +1,53 @@
+#reactions-container {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 120px;
+    height: 100%;
+    pointer-events: none;
+}
+
+.reaction {
+    position: absolute;
+    right: 20px;
+    font-size: 2.5em;
+    opacity: 0;
+    filter: drop-shadow(0 0 3px rgba(255,255,255,0.5));
+}
+
+.reaction.float {
+    animation: floatUp 3s ease-out;
+}
+
+.reaction.spin {
+    animation: spinUp 3s ease-out;
+}
+
+@keyframes floatUp {
+    0% {
+        opacity: 1;
+        transform: translateY(100%);
+    }
+    80% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-100%);
+    }
+}
+
+@keyframes spinUp {
+    0% {
+        opacity: 1;
+        transform: translateY(100%) rotate(0deg);
+    }
+    50% {
+        transform: translateY(0) rotate(360deg);
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-100%) rotate(720deg);
+    }
+} 

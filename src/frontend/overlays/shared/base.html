@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VSA Overlay</title>
+    <link rel="stylesheet" href="overlay.css">
+</head>
+<body>
+    <!-- Chat Overlay -->
+    <div id="chat-container" class="overlay-container" data-type="chat">
+        <div class="messages-wrapper">
+            <!-- Messages will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Reactions Overlay -->
+    <div id="reactions-container" class="overlay-container" data-type="reactions">
+        <div class="reactions-wrapper">
+            <!-- Reactions will appear here -->
+        </div>
+    </div>
+
+    <!-- Participants Overlay -->
+    <div id="participants-container" class="overlay-container" data-type="participants">
+        <div id="participants-list">
+            <!-- Participants will be listed here -->
+        </div>
+    </div>
+
+    <script src="overlay_client.js"></script>
+</body>
+</html> 

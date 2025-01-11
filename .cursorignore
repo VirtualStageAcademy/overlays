@@ -1,0 +1,9 @@
+/node_modules
+/build
+/temp
+.vscode
+.venv
+.DS_Store
+*.pyc
+*.log
+*.tmp
