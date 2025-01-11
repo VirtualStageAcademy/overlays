@@ -3,7 +3,7 @@ import logging
 from typing import Any, Dict
 
 from ..config.config_loader import get_environment_config
-from ..utils.error_handler import handle_error
+from ..utils import handle_error
 from .database import SubscriptionDB
 
 logger = logging.getLogger(__name__)
