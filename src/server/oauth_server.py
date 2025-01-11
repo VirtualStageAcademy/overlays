@@ -1,10 +1,5 @@
 import sys
 import os
-
-# Add project root to Python path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-sys.path.insert(0, project_root)
-
 import datetime
 import logging
 from pathlib import Path
@@ -15,17 +10,29 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.insert(0, project_root)
+
+# Import the main config loader
+from src.config.config_loader import get_environment_config
+
+# Set up logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+# Load environment variables
+env_path = os.path.join(project_root, '.env')
+load_dotenv(env_path)
+
+# Get environment-specific config
+config = get_environment_config()
+logger.info(f"Loaded config: {config}")
+
 # Print current directory
 print(f"Current working directory: {os.getcwd()}")
 print(f"Project root: {project_root}")
 print(f"Python path: {sys.path}")
-
-# Load .env file with absolute path
-env_path = '/Users/craighubbard/Documents/VirtualStageAcademy/TechHub/.env'
-print(f"Looking for .env at: {env_path}")
-print(f"File exists: {os.path.exists(env_path)}")
-
-load_dotenv(env_path)
 
 # Print all environment variables (excluding secrets)
 print("\nEnvironment Variables:")
@@ -34,14 +41,6 @@ for key in os.environ:
         print(f"{key}: {os.environ[key]}")
 
 from src.server.websocket.routes import router as ws_router
-from src.utils.config import get_config
-
-# Set up logging
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
-
-# Get environment-specific config
-config = get_config()
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
@@ -95,21 +94,40 @@ async def health_check():
 async def oauth_start():
     """Start the OAuth flow by redirecting to Zoom"""
     try:
-        # Get environment variables directly
+        # Debug: Print all environment variables (excluding secrets)
+        print("\nEnvironment Variables:")
+        for key in os.environ:
+            if 'SECRET' not in key and 'KEY' not in key:
+                print(f"{key}: {os.environ[key]}")
+        
+        # Get environment variables using proper prefix mapping
         env = os.getenv('ACTIVE_ENVIRONMENT', 'development')
-        prefix = 'DEV' if env == 'development' else 'PREVIEW'
+        prefix = {
+            'development': 'DEV',
+            'preview': 'PREVIEW',
+            'production': 'PROD'
+        }.get(env, 'DEV')
+        
+        print(f"\nDebug Info:")
+        print(f"Environment: {env}")
+        print(f"Prefix: {prefix}")
+        print(f"Client ID exists: {bool(os.getenv(f'{prefix}_CLIENT_ID'))}")
+        print(f"Redirect URI exists: {bool(os.getenv(f'{prefix}_REDIRECT_URI'))}")
         
         client_id = os.getenv(f'{prefix}_CLIENT_ID')
         redirect_uri = os.getenv(f'{prefix}_REDIRECT_URI')
         
-        print(f"Environment: {env}")
-        print(f"Prefix: {prefix}")
-        print(f"Client ID: {client_id}")
-        print(f"Redirect URI: {redirect_uri}")
-        
         if not client_id or not redirect_uri:
             return JSONResponse(
-                content={'error': 'Missing OAuth configuration'},
+                content={
+                    'error': 'Missing OAuth configuration',
+                    'details': {
+                        'env': env,
+                        'prefix': prefix,
+                        'client_id_exists': bool(client_id),
+                        'redirect_uri_exists': bool(redirect_uri)
+                    }
+                },
                 status_code=500
             )
         

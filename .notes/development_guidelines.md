@@ -43,7 +43,7 @@ DEV_REDIRECT_URI=https://new-ngrok-url.ngrok-free.app/oauth/callback
 ## Development Workflow
 
 ### 1. Code Organization
-- Core application code in root directory
+- Core application code in `src/server` directory
   - `oauth_server.py` - Main server entry point
   - `websocket_handler.py` - WebSocket functionality
   - `token_manager.py` - Token handling
@@ -55,7 +55,7 @@ DEV_REDIRECT_URI=https://new-ngrok-url.ngrok-free.app/oauth/callback
 ### 2. Configuration Management
 ```python
 # Loading configuration (see zoom_integration.md for required fields)
-from config_loader import get_environment_config
+from src.config.config_loader import get_environment_config
 
 config = get_environment_config()
 zoom_client_id = config['zoom']['client_id']
@@ -67,7 +67,7 @@ zoom_client_id = config['zoom']['client_id']
 source .venv/bin/activate
 
 # Run development server
-python oauth_server.py
+python -m src.server.oauth_server
 
 # Run tests
 python -m pytest tests/
