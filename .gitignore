@@ -23,3 +23,6 @@ __pycache__/
 
 # Ignore test and debug outputs
 tests/
+# Mac OS Icon files
+Icon?
+Icon
