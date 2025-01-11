@@ -179,6 +179,11 @@ async def oauth_status():
             status_code=500
         )
 
+@app.get('/favicon.ico')
+async def favicon():
+    """Serve favicon"""
+    return Response(status_code=204)  # No content, but not 404
+
 if __name__ == '__main__':
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=5000)
