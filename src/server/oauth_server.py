@@ -92,48 +92,24 @@ async def health_check():
 
 @app.get('/oauth/start')
 async def oauth_start():
-    """Start the OAuth flow by redirecting to Zoom"""
+    """Start the OAuth flow"""
     try:
-        # Debug: Print all environment variables (excluding secrets)
-        print("\nEnvironment Variables:")
-        for key in os.environ:
-            if 'SECRET' not in key and 'KEY' not in key:
-                print(f"{key}: {os.environ[key]}")
-        
-        # Get environment variables using proper prefix mapping
         env = os.getenv('ACTIVE_ENVIRONMENT', 'development')
-        prefix = {
-            'development': 'DEV',
-            'preview': 'PREVIEW',
-            'production': 'PROD'
-        }.get(env, 'DEV')
-        
-        print(f"\nDebug Info:")
-        print(f"Environment: {env}")
-        print(f"Prefix: {prefix}")
-        print(f"Client ID exists: {bool(os.getenv(f'{prefix}_CLIENT_ID'))}")
-        print(f"Redirect URI exists: {bool(os.getenv(f'{prefix}_REDIRECT_URI'))}")
+        prefix = 'PROD' if env == 'production' else 'DEV'
         
         client_id = os.getenv(f'{prefix}_CLIENT_ID')
         redirect_uri = os.getenv(f'{prefix}_REDIRECT_URI')
         
-        if not client_id or not redirect_uri:
-            return JSONResponse(
-                content={
-                    'error': 'Missing OAuth configuration',
-                    'details': {
-                        'env': env,
-                        'prefix': prefix,
-                        'client_id_exists': bool(client_id),
-                        'redirect_uri_exists': bool(redirect_uri)
-                    }
-                },
-                status_code=500
-            )
+        # Add debug logging
+        print(f"Environment: {env}")
+        print(f"Using redirect URI: {redirect_uri}")
         
         zoom_auth_url = f"https://zoom.us/oauth/authorize?response_type=code&client_id={client_id}&redirect_uri={redirect_uri}"
-        print(f"Auth URL: {zoom_auth_url}")
+        print(f"Full auth URL: {zoom_auth_url}")
         
+        if not client_id or not redirect_uri:
+            raise ValueError("Missing required OAuth configuration")
+            
         return RedirectResponse(url=zoom_auth_url)
         
     except Exception as e:
