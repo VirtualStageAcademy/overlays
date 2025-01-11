@@ -155,6 +155,30 @@ async def oauth_callback(code: str = None):
         'message': 'Authorization successful'
     }
 
+@app.get('/oauth/status')
+async def oauth_status():
+    """Check OAuth configuration status"""
+    try:
+        env = os.getenv('ACTIVE_ENVIRONMENT', 'development')
+        prefix = {
+            'development': 'DEV',
+            'preview': 'PREVIEW',
+            'production': 'PROD'
+        }.get(env, 'DEV')
+        
+        return {
+            'status': 'configured',
+            'environment': env,
+            'client_id_exists': bool(os.getenv(f'{prefix}_CLIENT_ID')),
+            'redirect_uri_exists': bool(os.getenv(f'{prefix}_REDIRECT_URI')),
+            'timestamp': datetime.datetime.now().isoformat()
+        }
+    except Exception as e:
+        return JSONResponse(
+            content={'error': str(e)},
+            status_code=500
+        )
+
 if __name__ == '__main__':
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=5000)
