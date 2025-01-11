@@ -1,27 +1,78 @@
-import datetime
+import sys
 import os
 
-from flask import Flask, jsonify, redirect, request, send_from_directory
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.insert(0, project_root)
 
-from .websocket.routes import ws_bp
+import datetime
+import logging
+from pathlib import Path
+from dotenv import load_dotenv
+from fastapi import FastAPI, Response
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, RedirectResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp
 
-app = Flask(__name__)
-app.register_blueprint(ws_bp, url_prefix='/ws')
+# Print current directory
+print(f"Current working directory: {os.getcwd()}")
+print(f"Project root: {project_root}")
+print(f"Python path: {sys.path}")
 
-# Configuration
-config = {
-    'zoom': {
-        'client_id': os.getenv('DEV_CLIENT_ID'),
-        'client_secret': os.getenv('DEV_CLIENT_SECRET'),
-        'redirect_uri': os.getenv('DEV_REDIRECT_URI')
-    },
-    'environment': 'development'
-}
+# Load .env file with absolute path
+env_path = '/Users/craighubbard/Documents/VirtualStageAcademy/TechHub/.env'
+print(f"Looking for .env at: {env_path}")
+print(f"File exists: {os.path.exists(env_path)}")
 
-@app.route('/')
-def root():
+load_dotenv(env_path)
+
+# Print all environment variables (excluding secrets)
+print("\nEnvironment Variables:")
+for key in os.environ:
+    if 'SECRET' not in key and 'KEY' not in key:
+        print(f"{key}: {os.environ[key]}")
+
+from src.server.websocket.routes import router as ws_router
+from src.utils.config import get_config
+
+# Set up logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+# Get environment-specific config
+config = get_config()
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers['Strict-Transport-Security'] = 'max-age=63072000; includeSubDomains'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        return response
+
+app = FastAPI()
+
+# Add the security headers middleware first
+app.add_middleware(SecurityHeadersMiddleware)
+
+# Then add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include routers
+app.include_router(ws_router, prefix="/ws")
+
+@app.get('/')
+async def root():
     """Root endpoint returning API information"""
-    return jsonify({
+    return {
         'service': 'Virtual Stage Academy OAuth Server',
         'status': 'online',
         'version': '1.0.0',
@@ -30,61 +81,63 @@ def root():
             'oauth': '/oauth',
             'websocket': '/ws'
         }
-    })
+    }
 
-@app.route('/health')
-def health_check():
+@app.get('/health')
+async def health_check():
     """Health check endpoint"""
-    return jsonify({
+    return {
         'status': 'healthy',
-        'environment': config['environment'],
         'timestamp': datetime.datetime.now().isoformat()
-    })
+    }
 
-@app.route('/oauth/start')
-def oauth_start():
+@app.get('/oauth/start')
+async def oauth_start():
     """Start the OAuth flow by redirecting to Zoom"""
-    zoom_auth_url = f"https://zoom.us/oauth/authorize?response_type=code&client_id={config['zoom']['client_id']}&redirect_uri={config['zoom']['redirect_uri']}"
-    return redirect(zoom_auth_url)
+    try:
+        # Get environment variables directly
+        env = os.getenv('ACTIVE_ENVIRONMENT', 'development')
+        prefix = 'DEV' if env == 'development' else 'PREVIEW'
+        
+        client_id = os.getenv(f'{prefix}_CLIENT_ID')
+        redirect_uri = os.getenv(f'{prefix}_REDIRECT_URI')
+        
+        print(f"Environment: {env}")
+        print(f"Prefix: {prefix}")
+        print(f"Client ID: {client_id}")
+        print(f"Redirect URI: {redirect_uri}")
+        
+        if not client_id or not redirect_uri:
+            return JSONResponse(
+                content={'error': 'Missing OAuth configuration'},
+                status_code=500
+            )
+        
+        zoom_auth_url = f"https://zoom.us/oauth/authorize?response_type=code&client_id={client_id}&redirect_uri={redirect_uri}"
+        print(f"Auth URL: {zoom_auth_url}")
+        
+        return RedirectResponse(url=zoom_auth_url)
+        
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return JSONResponse(
+            content={'error': str(e)},
+            status_code=500
+        )
 
-@app.route('/oauth/callback')
-def oauth_callback():
+@app.get('/oauth/callback')
+async def oauth_callback(code: str = None):
     """Handle the OAuth callback from Zoom"""
-    code = request.args.get('code')
     if not code:
-        return 'No code provided', 400
+        return JSONResponse(content={'error': 'No code provided'}, status_code=400)
     
-    # For now, just return success
-    return jsonify({
+    # Here you would handle the OAuth token exchange
+    return {
         'status': 'success',
         'message': 'Authorization successful'
-    })
-
-@app.route('/overlays/<overlay_type>')
-def serve_overlay(overlay_type):
-    """Serve overlay HTML files from their respective directories"""
-    valid_overlays = {
-        'chat': 'chat.html',
-        'reactions': 'reactions.html',
-        'word_cloud': 'word_cloud.html',
-        'world_map': 'world_map.html',
-        'countdown': 'countdown.html'
     }
-    
-    if overlay_type in valid_overlays:
-        return send_from_directory(
-            f'src/frontend/overlays/{overlay_type}', 
-            valid_overlays[overlay_type]
-        )
-    
-    return 'Overlay not found', 404
-
-# Add route for shared resources
-@app.route('/overlays/shared/<path:filename>')
-def serve_shared(filename):
-    """Serve shared overlay resources"""
-    return send_from_directory('src/frontend/overlays/shared', filename)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=5000)
 
